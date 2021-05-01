@@ -1,0 +1,10 @@
+test query
+mutation MyMutation {
+  addPerson(input: {id: "7a825a71-ea11-413d-b538-b475979a96bf", firstname: "Kshitij", lastname: "Agarwal", age: 10, phonenumber: "1234567899"}) {
+    person{
+      id 
+      firstname
+      lastname
+    }
+  }
+}
