@@ -8,15 +8,15 @@ with open("dataset.json") as f:
 
 
 def phonenumber():
-    return str(math.floor(1000000000 + np.random.rand(1) * 9000000000))
+    return (math.floor(1000000000 + np.random.rand(1) * 9000000000))
 
 
 def userid():
-    return str(uuid.uuid4())
+    return str(uuid.uuid4().hex)
 
 
 def ageFunc():
-    return math.floor(np.random.rand(1) * 111) + 10
+    return str(math.floor(np.random.rand(1) * 111) + 10)
 
 
 def name():
