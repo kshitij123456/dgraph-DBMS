@@ -1,8 +1,8 @@
 import datetime
 import json
+
 import pydgraph
-from query import data_generator 
-from pprint import pprint
+
 
 # Create a client stub.
 def create_client_stub():
@@ -22,59 +22,59 @@ def drop_all(client):
 # Set schema.
 def set_schema(client):
     schema = """
-    firstname: string @index(exact) .
-    lastname: string @index(exact) .
-    age: string @index(exact) .
-    phonenumber: int .
+    name: string @index(exact) .
+    age: int @index(exact) .
+    married: bool .
+    loc: geo .
+    dob: datetime .
     type Person {
-        firstname
-        lastname
+        name
         age
-        phonenumber
+        married
+        loc
+        dob
     }
     """
     return client.alter(pydgraph.Operation(schema=schema))
 
 
 # Create data using JSON.
-def create_data(client, ind, quan):
+def create_data(client):
     # Create a new transaction.
-    data = data_generator()
     txn = client.txn()
-
     try:
         # Create data.
         p = {
-            'uid': '_:' + data['id'],
+            'uid': '_:alice',
             'dgraph.type': 'Person',
-            'firstname': data['firstname'],
-            'lastname': data['lastname'],
-            'age': data['age'],
-            'phonenumber': data['phonenumber']
+            'name': 'Alice',
+            'age': 26,
+            'married': True,
+            'loc': {
+                'type': 'Point',
+                'coordinates': [1.1, 2],
+            },
+            'dob': datetime.datetime(1980, 1, 1, 23, 0, 0, 0).isoformat(),
+            'school': [
+                {
+                    'name': 'Crown Public School',
+                }
+            ]
         }
 
         # Run mutation.
-        response = txn.mutate(set_obj = p)
+        response = txn.mutate(set_obj=p)
 
         # Commit transaction.
         txn.commit()
 
         # Get uid of the outermost object (person named "Alice").
         # response.uids returns a map from blank node names to uids.
-        if ind % 100 == 0:
-            print('{} out of {}'.format(ind, quan))
-    except pydgraph.AbortedError as err:
-        print(err)
+        print('Created person named "Alice" with uid = {}'.format(response.uids['alice']))
+
     finally:
         # Clean up. Calling this after txn.commit() is a no-op and hence safe.
         txn.discard()
-
-
-def create_bulk_data(client):
-
-    quan = 20000
-    for i in range(quan):
-        create_data(client, i + 1, quan)
 
 
 # Deleting a data
@@ -158,18 +158,11 @@ def query_bob(client):
 
 
 def main():
-    # client_stub = pydgraph.DgraphClientStub.from_slash_endpoint(
-    #     data["endpoint"], data["apikey-client"]
-    # )
-    # client = pydgraph.DgraphClient(client_stub)
     client_stub = create_client_stub()
     client = create_client(client_stub)
-    print("Success")
-
     drop_all(client)
     set_schema(client)
-
-    create_bulk_data(client)
+    create_data(client)
     # query_alice(client)  # query for Alice
     # query_bob(client)  # query for Bob
     # delete_data(client)  # delete Bob
